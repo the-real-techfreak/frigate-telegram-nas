@@ -11,9 +11,7 @@ If not, an MQTT Broker (Mosquitto, EMQX, etc.) can also be installed in the same
 
 Once the distro is installed on a machine, SSH into the system and run the following command
 ```bash
-wget -qO setup.sh [https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/main/setup.sh](https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/setup.sh) && \
-chmod +x setup.sh && \
-sudo ./setup.sh
+wget -O setup.sh https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/main/install.sh && chmod +x setup.sh && sudo ./setup.sh
 ```
 # Post-Installation Steps
 
