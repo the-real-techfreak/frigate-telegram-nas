@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e
 
-if [ "$EUID" -ne 0 ]; then 
+# Improved root check
+if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
-  exit
+  exit 1
 fi
+
+# Fallback for the username if SUDO_USER is blank
+USER_NAME=${SUDO_USER:-$USER}
 
 echo "--- Phase 1: Installing Frigate & Docker Core ---"
 
@@ -24,23 +28,23 @@ apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 # 2. Create Frigate Directories
 mkdir -p /main/frigate/{config,data}
 
-# 3. Create .env (Base Variables)
+# 3. Create .env
 cat <<EOF > /main/.env
-FRIGATE_URL=http://frigate:5000
-MQTT_HOST=
+MQTT_HOST=127.0.0.1
 MQTT_PORT=1883
-MQTT_USER=
-MQTT_PASS=
-FRIGATE_RTSP_PASSWORD=
+MQTT_USER=admin
+MQTT_PASS=password
+FRIGATE_RTSP_PASSWORD=password
 EOF
 
 # 4. Create Frigate config.yml
+# Note: we use \${VAR} so Frigate reads them at runtime from the env
 cat <<EOF > /main/frigate/config/config.yml
 mqtt:
-  host: {MQTT_HOST}
-  port: {MQTT_PORT}
-  user: {MQTT_USER}
-  password: {MQTT_PASS}
+  host: \${MQTT_HOST}
+  port: \${MQTT_PORT}
+  user: \${MQTT_USER}
+  password: \${MQTT_PASS}
 
 detectors:
   coral:
@@ -56,7 +60,8 @@ detect:
   fps: 4
 
 objects:
-  track: [person]
+  track:
+    - person
 
 go2rtc:
   streams:
@@ -69,12 +74,12 @@ cameras:
       inputs:
         - path: rtsp://127.0.0.1:8554/outdoorcamhd
           input_args: preset-rtsp-restream
-          roles: [detect, record]
-
-version: 0.17-0
+          roles:
+            - detect
+            - record
 EOF
 
-# 5. Create compose.yml (Base Containers)
+# 5. Create compose.yml
 cat <<EOF > /main/compose.yml
 services:
   dozzle:
@@ -91,7 +96,7 @@ services:
     privileged: true
     restart: unless-stopped
     image: ghcr.io/blakeblackshear/frigate:stable
-    shm_size: "256mb"
+    shm_size: "512mb"
     devices:
       - /dev/bus/usb:/dev/bus/usb
       - /dev/dri/renderD128:/dev/dri/renderD128
@@ -108,14 +113,10 @@ services:
       - "8971:8971"
       - "8554:8554"
       - "1984:1984"
-    environment:
-      MQTT_HOST: \${MQTT_HOST}
-      MQTT_PORT: \${MQTT_PORT}
-      MQTT_USER: \${MQTT_USER}
-      MQTT_PASS: \${MQTT_PASS}
-      FRIGATE_RTSP_PASSWORD: \${FRIGATE_RTSP_PASSWORD}
+    env_file:
+      - .env
 EOF
 
-chown -R $SUDO_USER:$SUDO_USER /main
-usermod -aG docker $SUDO_USER
-echo "--- Frigate Core Installed. Edit /main/.env then run 'docker compose up -d' ---"
+chown -R "$USER_NAME":"$USER_NAME" /main
+usermod -aG docker "$USER_NAME"
+echo "--- Success! Edit /main/.env and then run 'docker compose up -d' in /main ---"
