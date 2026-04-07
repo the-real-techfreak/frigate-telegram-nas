@@ -34,7 +34,7 @@ lxc.mount.entry: /dev/bus/usb/003/ dev/bus/usb/003/ none bind,optional,create=di
 
 SSH into the machine and run the following command
 ```bash
-wget -O frigate.sh https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/main/install_frigate.sh && sudo chmod +x frigate.sh && sudo ./frigate.sh
+wget -O frigate.sh https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/blob/main/install_frigate.sh && sudo chmod +x frigate.sh && sudo ./frigate.sh
 ```
 The above script completes the following actions
 - Install Docker, Docker-Compose and corresponding dependencies
@@ -66,7 +66,7 @@ The below script needs to be executed after installing Frigate NVR from the abov
 SSH into the machine and run the following command
 
 ```bash
-wget -O notifier.sh https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/main/install_notifier.sh && sudo chmod +x notifier.sh && sudo ./notifier.sh
+wget -O notifier.sh https://raw.githubusercontent.com/the-real-techfreak/frigate-telegram-nas/blob/main/install_notifier.sh && sudo chmod +x notifier.sh && sudo ./notifier.sh
 ```
 The above script completes the following actions
 - Create directories for notifier and review clips collection (/main/{notifier, clips})
