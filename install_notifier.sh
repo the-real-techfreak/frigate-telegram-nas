@@ -1,19 +1,25 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+# Ensure script runs as root
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ Please run as root (use sudo)"
+  exit 1
+fi
+
+BASE_DIR="/main"
 
 echo "🚀 Adding Frigate Notifier..."
 
 # -------------------------
 # Directories
 # -------------------------
-echo "📁 Creating directories..."
-sudo mkdir -p /main/{clips,notifier}
+mkdir -p $BASE_DIR/{clips,notifier}
 
 # -------------------------
 # Requirements
 # -------------------------
-echo "📝 Creating requirements..."
-sudo tee /main/notifier/requirements.txt > /dev/null << 'EOF'
+cat > $BASE_DIR/notifier/requirements.txt << 'EOF'
 paho-mqtt
 requests
 python-telegram-bot
@@ -22,8 +28,7 @@ EOF
 # -------------------------
 # Notifier script
 # -------------------------
-echo "📝 Creating notifier script..."
-sudo tee /main/notifier/frigate_notifier.py > /dev/null << 'EOF'
+cat > $BASE_DIR/notifier/frigate_notifier.py << 'EOF'
 import json, os, requests, asyncio
 import paho.mqtt.client as mqtt
 from telegram import Bot
@@ -83,8 +88,7 @@ EOF
 # -------------------------
 # Update .env
 # -------------------------
-echo "📝 Updating .env..."
-sudo tee -a /main/.env > /dev/null << 'EOF'
+cat >> $BASE_DIR/.env << 'EOF'
 
 # Telegram
 TELEGRAM_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
@@ -94,8 +98,7 @@ EOF
 # -------------------------
 # Update compose
 # -------------------------
-echo "📝 Updating compose..."
-sudo tee -a /main/compose.yml > /dev/null << 'EOF'
+cat >> $BASE_DIR/compose.yml << 'EOF'
 
   frigate-notifier:
     container_name: notifier
@@ -113,4 +116,4 @@ EOF
 echo ""
 echo "✅ NOTIFIER SETUP COMPLETE"
 echo "👉 Restart stack:"
-echo "docker compose --env-file /main/.env -f /main/compose.yml up -d"
+echo "docker compose --env-file $BASE_DIR/.env -f $BASE_DIR/compose.yml up -d"
