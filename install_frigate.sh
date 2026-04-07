@@ -64,7 +64,7 @@ MQTT_PORT=1883
 MQTT_USER=frigate
 MQTT_PASS=frigate
 
-FRIGATE_URL=http://192.168.0.248:5000
+FRIGATE_URL=http://frigate:5000
 EOF
 
 chmod 600 $BASE_DIR/.env
